@@ -289,7 +289,7 @@ body {
 
 .input {
   flex: 1;
-  background: transparent;
+  background: var(--input-bg);
   border: none;
   color: var(--text);
   font-size: 15px;
@@ -299,6 +299,8 @@ body {
   min-height: 24px;
   max-height: 160px;
   line-height: 1.5;
+  padding-top: 4px;        
+  vertical-align: middle; 
 }
 
 .input::placeholder { color: var(--muted); }
