@@ -275,7 +275,7 @@ body {
 .input-row {
   display: flex;
   gap: 8px;
-  align-items: flex-end;
+  align-items: center;   /* ← was flex-end */
   background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 16px;
