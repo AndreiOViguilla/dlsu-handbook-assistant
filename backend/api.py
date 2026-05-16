@@ -12,12 +12,13 @@ from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 
 from pypdf import PdfReader
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 from groq import Groq
 
-# Setup
+# ── Setup ─────────────────────────────────────────────────────────────────────
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,15 +37,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load models
+# ── Load models & data ────────────────────────────────────────────────────────
 PDF_PATH = "student-handbook.pdf"
 MODEL    = "llama-3.3-70b-versatile"
 
 client   = Groq(api_key=os.environ["GROQ_API_KEY"])
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
-# CrossEncoder removed to fit in 512MB free tier
+embedder = SentenceTransformer("BAAI/bge-base-en-v1.5")
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-12-v2")
 
-# Chunker
+# ── Chunker ───────────────────────────────────────────────────────────────────
 SECTION_RE = re.compile(
     r'(?m)^('
     r'Section\s+\d+'
@@ -58,7 +59,7 @@ SECTION_RE = re.compile(
 )
 
 def chunk_pdf(pdf_path, max_size=5000):
-    reader    = PdfReader(pdf_path)
+    reader   = PdfReader(pdf_path)
     full_text = "\n".join(p.extract_text().strip() for p in reader.pages if p.extract_text())
     parts     = SECTION_RE.split(full_text)
     raw, i    = [], 0
@@ -81,13 +82,13 @@ def chunk_pdf(pdf_path, max_size=5000):
             if sub: chunks.append(" ".join(sub))
     return chunks
 
-# Load or generate embeddings
+# ── Load or generate embeddings ───────────────────────────────────────────────
 if os.path.exists("chunk_embeddings.npy") and os.path.exists("chunks.json"):
     logger.info("Loading saved embeddings...")
     chunk_embeddings = np.load("chunk_embeddings.npy")
     chunks_after     = json.load(open("chunks.json"))
 else:
-    logger.info("Generating embeddings from PDF...")
+    logger.info("Generating embeddings from PDF (first run, takes a few minutes)...")
     chunks_after     = chunk_pdf(PDF_PATH)
     chunk_embeddings = embedder.encode(chunks_after, show_progress_bar=True,
                                        batch_size=32, convert_to_numpy=True)
@@ -97,25 +98,25 @@ else:
 
 tokenized = [c.lower().split() for c in chunks_after]
 bm25      = BM25Okapi(tokenized)
-logger.info(f"Ready - {len(chunks_after)} chunks loaded")
+logger.info(f"Ready — {len(chunks_after)} chunks loaded")
 
+# ── Conversation history (per server, resets on restart) ──────────────────────
 history = []
 
-# RAG functions
-def retrieve(query, final_k=8, candidate_k=100):
-    q_emb       = embedder.encode([query], convert_to_numpy=True)
-    sem_scores  = cosine_similarity(q_emb, chunk_embeddings).flatten()
-    sem_idx     = sem_scores.argsort()[::-1][:candidate_k // 2]
+# ── RAG functions ─────────────────────────────────────────────────────────────
+def retrieve_with_rerank(query, candidate_k=100, final_k=8):
+    q_emb      = embedder.encode([query], convert_to_numpy=True)
+    sem_scores = cosine_similarity(q_emb, chunk_embeddings).flatten()
+    sem_idx    = sem_scores.argsort()[::-1][:candidate_k // 2]
     bm25_scores = bm25.get_scores(query.lower().split())
     bm25_idx    = bm25_scores.argsort()[::-1][:candidate_k // 2]
-    rrf = {}
-    for rank, i in enumerate(sem_idx):
-        rrf[int(i)] = rrf.get(int(i), 0) + 1 / (60 + rank)
-    for rank, i in enumerate(bm25_idx):
-        rrf[int(i)] = rrf.get(int(i), 0) + 1 / (60 + rank)
-    ranked = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[:final_k]
-    return [{"chunk_id": idx, "rerank_score": round(s, 4), "text": chunks_after[idx]}
-            for idx, s in ranked]
+    combined    = list(set(sem_idx.tolist() + bm25_idx.tolist()))
+    candidates  = [{"chunk_id": i, "text": chunks_after[i]} for i in combined]
+    pairs       = [(query, c["text"]) for c in candidates]
+    scores      = reranker.predict(pairs)
+    for c, s in zip(candidates, scores):
+        c["rerank_score"] = round(float(s), 4)
+    return sorted(candidates, key=lambda x: x["rerank_score"], reverse=True)[:final_k]
 
 def build_prompt(chunks):
     context = "\n\n---\n\n".join(
@@ -165,7 +166,7 @@ def call_groq(messages, max_tokens=600, retries=3):
             else:
                 raise
 
-# Models
+# ── Request/Response models ───────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     question: str
 
@@ -183,12 +184,17 @@ class ChatRequest(BaseModel):
                 raise ValueError("Invalid input detected")
         return v
 
+class Source(BaseModel):
+    chunk_id: int
+    score: float
+    preview: str
+
 class ChatResponse(BaseModel):
     answer: str
     sources: list
     confidence: str
 
-# Endpoints
+# ── Endpoints ─────────────────────────────────────────────────────────────────
 @app.get("/health")
 def health():
     return {"status": "ok", "chunks": len(chunks_after)}
@@ -198,24 +204,29 @@ def health():
 def chat_endpoint(request: Request, req: ChatRequest):
     try:
         logger.info(f"{datetime.now()} | {request.client.host} | {req.question[:60]}")
+
         expanded  = expand_query(req.question)
-        retrieved = retrieve(expanded, final_k=8, candidate_k=100)
+        retrieved = retrieve_with_rerank(expanded, candidate_k=100, final_k=8)
         system    = build_prompt(retrieved)
+
         history.append({"role": "user", "content": req.question})
-        resp = call_groq(
+        resp  = call_groq(
             messages=[{"role": "system", "content": system}] + history[-6:],
             max_tokens=600
         )
         answer = resp.choices[0].message.content
         history.append({"role": "assistant", "content": answer})
+
         top_score  = retrieved[0]["rerank_score"]
-        confidence = "HIGH" if top_score > 0.02 else "MEDIUM" if top_score > 0.01 else "LOW"
+        confidence = "HIGH" if top_score > 5 else "MEDIUM" if top_score > 2 else "LOW"
         sources    = [
             {"chunk_id": r["chunk_id"], "score": r["rerank_score"],
              "preview": r["text"][:120]}
             for r in retrieved[:3]
         ]
+
         return ChatResponse(answer=answer, sources=sources, confidence=confidence)
+
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
