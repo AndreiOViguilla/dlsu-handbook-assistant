@@ -1,0 +1,6 @@
+.env
+chunk_embeddings.npy
+__pycache__/
+*.pyc
+.DS_Store
+venv/

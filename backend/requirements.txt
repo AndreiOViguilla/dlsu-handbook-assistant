@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+groq
+sentence-transformers
+rank-bm25
+scikit-learn
+numpy
+pypdf
+torch
+slowapi
+python-dotenv
+pydantic
