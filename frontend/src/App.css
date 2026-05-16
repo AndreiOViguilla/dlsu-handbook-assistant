@@ -358,3 +358,21 @@ body {
   transition: all 0.15s;
 }
 .sources-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+
+.stop-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--muted);
+  border: none;
+  border-radius: 8px;
+  color: #212121;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stop-btn:hover { background: #ececec; }
+.stop-btn:active { transform: scale(0.95); }

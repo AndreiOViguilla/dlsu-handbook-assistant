@@ -68,16 +68,26 @@ function Message({ msg, showSources }) {
 }
 
 export default function App() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput]       = useState("");
-  const [loading, setLoading]   = useState(false);
-  const [showSources, setShowSources] = useState(false);
-  const bottomRef = useRef(null);
-  const inputRef  = useRef(null);
+  const [messages, setMessages]         = useState([]);
+  const [input, setInput]               = useState("");
+  const [loading, setLoading]           = useState(false);
+  const [showSources, setShowSources]   = useState(false);
+  const bottomRef                       = useRef(null);
+  const inputRef                        = useRef(null);
+  const abortRef                        = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  const stop = () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    setLoading(false);
+    inputRef.current?.focus();
+  };
 
   const send = async (question) => {
     const q = (question || input).trim();
@@ -86,8 +96,14 @@ export default function App() {
     setMessages(prev => [...prev, { role: "user", text: q }]);
     setLoading(true);
 
+    abortRef.current = new AbortController();
+
     try {
-      const { data } = await axios.post(`${API}/chat`, { question: q });
+      const { data } = await axios.post(
+        `${API}/chat`,
+        { question: q },
+        { signal: abortRef.current.signal }
+      );
       setMessages(prev => [...prev, {
         role: "bot",
         text: data.answer,
@@ -95,17 +111,22 @@ export default function App() {
         confidence: data.confidence,
       }]);
     } catch (err) {
-      const detail = err.response?.data?.detail || "Error connecting to server.";
-      setMessages(prev => [...prev, {
-        role: "bot",
-        text: detail,
-        sources: [],
-        confidence: "LOW",
-        error: true,
-      }]);
+      if (axios.isCancel(err) || err.name === "CanceledError") {
+        // user stopped — don't show error
+      } else {
+        const detail = err.response?.data?.detail || "Error connecting to server.";
+        setMessages(prev => [...prev, {
+          role: "bot",
+          text: detail,
+          sources: [],
+          confidence: "LOW",
+          error: true,
+        }]);
+      }
     }
 
     setLoading(false);
+    abortRef.current = null;
     inputRef.current?.focus();
   };
 
@@ -182,14 +203,21 @@ export default function App() {
             onKeyDown={handleKey}
             placeholder="Ask about DLSU policies..."
             rows={1}
+            disabled={loading}
           />
-          <button
-            className="send-btn"
-            onClick={() => send()}
-            disabled={loading || !input.trim()}
-          >
-            ➤
-          </button>
+          {loading ? (
+            <button className="stop-btn" onClick={stop} title="Stop generating">
+              &#9632;
+            </button>
+          ) : (
+            <button
+              className="send-btn"
+              onClick={() => send()}
+              disabled={!input.trim()}
+            >
+              ➤
+            </button>
+          )}
         </div>
         <div className="disclaimer">
           Responses based on DLSU Student Handbook 2021-2025. For official guidance, consult the SDFO or relevant office.
