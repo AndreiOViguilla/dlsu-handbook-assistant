@@ -346,3 +346,15 @@ body {
   .bubble-wrapper { max-width: 90%; }
   .message-row.user .bubble-wrapper { max-width: 80%; }
 }
+
+.sources-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.sources-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }

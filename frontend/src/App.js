@@ -17,16 +17,18 @@ function TypingIndicator() {
   return (
     <div className="message-row bot">
       <div className="avatar">La</div>
-      <div className="bubble bot">
-        <div className="typing">
-          <span /><span /><span />
+      <div className="bubble-wrapper">
+        <div className="bubble bot">
+          <div className="typing">
+            <span /><span /><span />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function Message({ msg }) {
+function Message({ msg, showSources }) {
   const confidenceColor = {
     HIGH: "#22c55e",
     MEDIUM: "#f59e0b",
@@ -40,13 +42,13 @@ function Message({ msg }) {
         <div className={`bubble ${msg.role}`}>
           {msg.text}
         </div>
-        {msg.sources?.length > 0 && (
+        {showSources && msg.sources?.length > 0 && (
           <div className="sources">
             <span style={{ color: confidenceColor[msg.confidence] }}>
               ● {msg.confidence}
             </span>
             {" · "}
-            {msg.sources.length} sources used
+            {msg.sources.length} sources
             <div className="source-list">
               {msg.sources.map((s, i) => (
                 <div key={i} className="source-item">
@@ -61,7 +63,6 @@ function Message({ msg }) {
           <div className="error-msg">{msg.text}</div>
         )}
       </div>
-      {msg.role === "user" && <div className="avatar user">You</div>}
     </div>
   );
 }
@@ -122,36 +123,33 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Header */}
       <header className="header">
         <div className="header-left">
           <div className="logo">La</div>
           <div>
             <div className="title">DLSU Handbook Assistant</div>
-            <div className="subtitle">Student Handbook 2021–2025</div>
+            <div className="subtitle">Student Handbook 2021-2025</div>
           </div>
         </div>
         <div className="header-right">
           <button
-            className="icon-btn"
+            className="sources-btn"
             onClick={() => setShowSources(s => !s)}
-            title="Toggle sources"
           >
-            📚
+            {showSources ? "Hide sources" : "View sources"}
           </button>
           <button className="clear-btn" onClick={clearChat}>
-            Clear Chat
+            Clear chat
           </button>
         </div>
       </header>
 
-      {/* Messages */}
       <main className="messages">
         {messages.length === 0 && (
           <div className="welcome">
             <div className="welcome-logo">La</div>
-            <h2>Animo La Salle! 💚</h2>
-            <p>Ask me anything about the DLSU Student Handbook</p>
+            <h2>DLSU Handbook Assistant</h2>
+            <p>Ask me anything about the DLSU Student Handbook 2021-2025</p>
             <div className="suggestions">
               {SUGGESTIONS.map(q => (
                 <button key={q} className="suggestion" onClick={() => send(q)}>
@@ -163,14 +161,13 @@ export default function App() {
         )}
 
         {messages.map((msg, i) => (
-          <Message key={i} msg={showSources ? msg : { ...msg, sources: [] }} />
+          <Message key={i} msg={msg} showSources={showSources} />
         ))}
 
         {loading && <TypingIndicator />}
         <div ref={bottomRef} />
       </main>
 
-      {/* Input */}
       <footer className="input-area">
         <div className="input-row">
           <textarea
@@ -180,10 +177,10 @@ export default function App() {
             onChange={e => {
               setInput(e.target.value);
               e.target.style.height = "auto";
-              e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+              e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
             }}
             onKeyDown={handleKey}
-            placeholder="Ask about DLSU policies... (Enter to send, Shift+Enter for new line)"
+            placeholder="Ask about DLSU policies..."
             rows={1}
           />
           <button
@@ -195,8 +192,7 @@ export default function App() {
           </button>
         </div>
         <div className="disclaimer">
-          Responses based on DLSU Student Handbook 2021–2025.
-          For official guidance, consult the SDFO or relevant office.
+          Responses based on DLSU Student Handbook 2021-2025. For official guidance, consult the SDFO or relevant office.
         </div>
       </footer>
     </div>
