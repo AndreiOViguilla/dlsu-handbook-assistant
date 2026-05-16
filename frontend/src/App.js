@@ -29,7 +29,53 @@ function TypingIndicator() {
   );
 }
 
-function FeedbackModal({ onClose, onSubmit }) {
+function FeedbackModal({ onClose, onSubmit, prefillMessage }) {
+  const [issue, setIssue] = useState(prefillMessage || "");
+  const [sent, setSent]   = useState(false);
+
+  const handleSubmit = async () => {
+    if (!issue.trim()) return;
+    await onSubmit(issue);
+    setSent(true);
+    setTimeout(onClose, 2000);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        {sent ? (
+          <div className="modal-sent">
+            <div className="modal-sent-icon">✓</div>
+            <p>Thank you! Your feedback has been sent.</p>
+          </div>
+        ) : (
+          <>
+            <div className="modal-header">
+              <h3>Report an issue</h3>
+              <button className="modal-close" onClick={onClose}>✕</button>
+            </div>
+            <p className="modal-desc">
+              Describe what went wrong or what answer you were expecting.
+            </p>
+            <textarea
+              className="modal-input"
+              placeholder="Describe the issue..."
+              value={issue}
+              onChange={e => setIssue(e.target.value)}
+              rows={4}
+            />
+            <div className="modal-actions">
+              <button className="modal-cancel" onClick={onClose}>Cancel</button>
+              <button className="modal-submit" onClick={handleSubmit}>Send report</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CheckFeedbackModal({ onClose, onSubmit }) {
   const [issue, setIssue] = useState("");
   const [sent, setSent]   = useState(false);
 
@@ -75,11 +121,19 @@ function FeedbackModal({ onClose, onSubmit }) {
   );
 }
 
-function Message({ msg, showSources }) {
+function Message({ msg, showSources, onReport }) {
+  const [copied, setCopied] = useState(false);
+
   const confidenceColor = {
     HIGH: "#22c55e",
     MEDIUM: "#f59e0b",
     LOW: "#ef4444",
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(msg.text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -93,6 +147,38 @@ function Message({ msg, showSources }) {
             msg.text
           )}
         </div>
+
+        {msg.role === "bot" && !msg.error && (
+          <div className="message-actions">
+            <button
+              className="action-btn"
+              onClick={handleCopy}
+              title={copied ? "Copied!" : "Copy response"}
+            >
+              {copied ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+              )}
+            </button>
+            <button
+              className="action-btn"
+              onClick={() => onReport(msg.text)}
+              title="Report issue"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                <line x1="4" y1="22" x2="4" y2="15"/>
+              </svg>
+            </button>
+          </div>
+        )}
+
         {showSources && msg.sources?.length > 0 && (
           <div className="sources">
             <span style={{ color: confidenceColor[msg.confidence] }}>
@@ -119,12 +205,13 @@ function Message({ msg, showSources }) {
 }
 
 export default function App() {
-  const [messages, setMessages]           = useState([]);
-  const [input, setInput]                 = useState("");
-  const [loading, setLoading]             = useState(false);
-  const [showSources, setShowSources]     = useState(false);
-  const [showFeedback, setShowFeedback]   = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
+  const [messages, setMessages]             = useState([]);
+  const [input, setInput]                   = useState("");
+  const [loading, setLoading]               = useState(false);
+  const [showSources, setShowSources]       = useState(false);
+  const [showCheckFeedback, setShowCheckFeedback] = useState(false);
+  const [reportModal, setReportModal]       = useState(null); // holds msg text
+  const [questionCount, setQuestionCount]   = useState(0);
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
   const abortRef  = useRef(null);
@@ -135,7 +222,7 @@ export default function App() {
 
   useEffect(() => {
     if (questionCount === 2) {
-      setShowFeedback(true);
+      setShowCheckFeedback(true);
     }
   }, [questionCount]);
 
@@ -192,15 +279,13 @@ export default function App() {
     inputRef.current?.focus();
   };
 
-  const submitFeedback = async (issue) => {
+  const submitFeedback = async (issue, reportedMessage) => {
     try {
-      await axios.post(`${API}/feedback`, {
-        issue,
-        conversation: messages.slice(-6).map(m => ({
-          role: m.role,
-          text: m.text
-        }))
-      });
+      const conversation = reportedMessage
+        ? [{ role: "bot", text: reportedMessage }]
+        : messages.slice(-6).map(m => ({ role: m.role, text: m.text }));
+
+      await axios.post(`${API}/feedback`, { issue, conversation });
     } catch (err) {
       console.error("Feedback error:", err);
     }
@@ -221,10 +306,18 @@ export default function App() {
 
   return (
     <div className="app">
-      {showFeedback && (
+      {showCheckFeedback && (
+        <CheckFeedbackModal
+          onClose={() => setShowCheckFeedback(false)}
+          onSubmit={(issue) => submitFeedback(issue, null)}
+        />
+      )}
+
+      {reportModal !== null && (
         <FeedbackModal
-          onClose={() => setShowFeedback(false)}
-          onSubmit={submitFeedback}
+          onClose={() => setReportModal(null)}
+          onSubmit={(issue) => submitFeedback(issue, reportModal)}
+          prefillMessage=""
         />
       )}
 
@@ -266,7 +359,12 @@ export default function App() {
         )}
 
         {messages.map((msg, i) => (
-          <Message key={i} msg={msg} showSources={showSources} />
+          <Message
+            key={i}
+            msg={msg}
+            showSources={showSources}
+            onReport={(msgText) => setReportModal(msgText)}
+          />
         ))}
 
         {loading && <TypingIndicator />}

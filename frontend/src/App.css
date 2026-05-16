@@ -2,7 +2,6 @@
 
 :root {
   --bg:         #212121;
-  --sidebar:    #171717;
   --card:       #2f2f2f;
   --input-bg:   #2f2f2f;
   --border:     rgba(255,255,255,0.1);
@@ -11,7 +10,6 @@
   --accent:     #19c37d;
   --user-bg:    #2f2f2f;
   --bot-bg:     transparent;
-  --send:       #19c37d;
 }
 
 body {
@@ -30,6 +28,7 @@ body {
   margin: 0 auto;
 }
 
+/* ── Header ── */
 .header {
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
@@ -60,18 +59,6 @@ body {
 .title   { color: var(--text); font-weight: 600; font-size: 15px; }
 .subtitle{ color: var(--muted); font-size: 12px; margin-top: 1px; }
 
-.icon-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  color: var(--muted);
-  transition: background 0.15s, color 0.15s;
-}
-.icon-btn:hover { background: var(--card); color: var(--text); }
-
 .clear-btn {
   background: transparent;
   border: 1px solid var(--border);
@@ -84,6 +71,19 @@ body {
 }
 .clear-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
 
+.sources-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.sources-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+
+/* ── Messages ── */
 .messages {
   flex: 1;
   overflow-y: auto;
@@ -93,6 +93,7 @@ body {
   gap: 0;
 }
 
+/* ── Welcome ── */
 .welcome {
   text-align: center;
   padding: 60px 24px 32px;
@@ -136,11 +137,9 @@ body {
   transition: all 0.15s;
   line-height: 1.4;
 }
-.suggestion:hover {
-  background: #3a3a3a;
-  border-color: rgba(255,255,255,0.2);
-}
+.suggestion:hover { background: #3a3a3a; border-color: rgba(255,255,255,0.2); }
 
+/* ── Message rows ── */
 .message-row {
   display: flex;
   gap: 0;
@@ -182,7 +181,6 @@ body {
   border-radius: 18px;
   font-size: 15px;
   line-height: 1.7;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 
@@ -191,20 +189,17 @@ body {
   border-radius: 0;
   padding: 4px 0;
   color: var(--text);
-  font-size: 15px;
   white-space: normal;
 }
 
-.bubble.bot p  { margin-bottom: 8px; }
-.bubble.bot ul, .bubble.bot ol { padding-left: 20px; margin-bottom: 8px; }
-.bubble.bot li { margin-bottom: 4px; }
-.bubble.bot strong { color: var(--text); font-weight: 600; }
-.bubble.bot h1, .bubble.bot h2, .bubble.bot h3 {
-  color: var(--text);
-  font-weight: 600;
-  margin-bottom: 8px;
-  margin-top: 12px;
-}
+.bubble.bot p          { margin-bottom: 8px; }
+.bubble.bot ul,
+.bubble.bot ol         { padding-left: 20px; margin-bottom: 8px; }
+.bubble.bot li         { margin-bottom: 4px; }
+.bubble.bot strong     { color: var(--text); font-weight: 600; }
+.bubble.bot h1,
+.bubble.bot h2,
+.bubble.bot h3         { color: var(--text); font-weight: 600; margin: 12px 0 8px; }
 
 .bubble.user {
   background: var(--user-bg);
@@ -214,6 +209,36 @@ body {
   white-space: pre-wrap;
 }
 
+/* ── Message action buttons (copy / report) ── */
+.message-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.bubble-wrapper:hover .message-actions { opacity: 1; }
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.action-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+}
+
+/* ── Sources ── */
 .sources {
   margin-top: 10px;
   font-size: 12px;
@@ -239,7 +264,7 @@ body {
 
 .source-score {
   display: inline-block;
-  background: rgba(25, 195, 125, 0.15);
+  background: rgba(25,195,125,0.15);
   color: var(--accent);
   border-radius: 4px;
   padding: 0 5px;
@@ -249,6 +274,7 @@ body {
 
 .error-msg { color: #ef4444; font-size: 12px; margin-top: 4px; }
 
+/* ── Typing ── */
 .typing {
   display: flex;
   gap: 4px;
@@ -269,9 +295,10 @@ body {
 
 @keyframes bounce {
   0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-  40% { transform: translateY(-6px); opacity: 1; }
+  40%           { transform: translateY(-6px); opacity: 1; }
 }
 
+/* ── Input area ── */
 .input-area {
   padding: 12px 20px 20px;
   background: var(--bg);
@@ -347,18 +374,6 @@ body {
 .stop-btn:hover { background: #ececec; }
 .stop-btn:active { transform: scale(0.95); }
 
-.sources-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.15s;
-}
-.sources-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
-
 .disclaimer {
   text-align: center;
   font-size: 12px;
@@ -366,23 +381,27 @@ body {
   margin-top: 10px;
 }
 
+/* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Scrollbar ── */
 .messages::-webkit-scrollbar { width: 6px; }
 .messages::-webkit-scrollbar-track { background: transparent; }
 .messages::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
 .messages::-webkit-scrollbar-thumb:hover { background: #4a4a4a; }
 
+/* ── Mobile ── */
 @media (max-width: 600px) {
   .suggestions { grid-template-columns: 1fr; }
   .bubble-wrapper { max-width: 90%; }
   .message-row.user .bubble-wrapper { max-width: 80%; }
+  .message-actions { opacity: 1; }
 }
 
-/* ── Feedback Modal ───────────────────────────────────────────────────────── */
+/* ── Feedback Modal ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
