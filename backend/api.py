@@ -31,7 +31,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://your-app.vercel.app",   # replace with your Vercel URL
+        "https://dlsu-handbook-assistant.vercel.app",   # replace with your Vercel URL
     ],
     allow_methods=["POST", "DELETE", "GET"],
     allow_headers=["*"],
