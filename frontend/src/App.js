@@ -29,6 +29,52 @@ function TypingIndicator() {
   );
 }
 
+function FeedbackModal({ onClose, onSubmit }) {
+  const [issue, setIssue] = useState("");
+  const [sent, setSent]   = useState(false);
+
+  const handleSubmit = async () => {
+    if (!issue.trim()) return;
+    await onSubmit(issue);
+    setSent(true);
+    setTimeout(onClose, 2000);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        {sent ? (
+          <div className="modal-sent">
+            <div className="modal-sent-icon">✓</div>
+            <p>Thank you! Your feedback has been sent.</p>
+          </div>
+        ) : (
+          <>
+            <div className="modal-header">
+              <h3>Having trouble?</h3>
+              <button className="modal-close" onClick={onClose}>✕</button>
+            </div>
+            <p className="modal-desc">
+              It looks like you have asked a few questions. Is the bot giving you the answers you need?
+            </p>
+            <textarea
+              className="modal-input"
+              placeholder="Describe the issue or what answer you were expecting..."
+              value={issue}
+              onChange={e => setIssue(e.target.value)}
+              rows={4}
+            />
+            <div className="modal-actions">
+              <button className="modal-cancel" onClick={onClose}>No issue</button>
+              <button className="modal-submit" onClick={handleSubmit}>Send feedback</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Message({ msg, showSources }) {
   const confidenceColor = {
     HIGH: "#22c55e",
@@ -73,17 +119,25 @@ function Message({ msg, showSources }) {
 }
 
 export default function App() {
-  const [messages, setMessages]       = useState([]);
-  const [input, setInput]             = useState("");
-  const [loading, setLoading]         = useState(false);
-  const [showSources, setShowSources] = useState(false);
-  const bottomRef                     = useRef(null);
-  const inputRef                      = useRef(null);
-  const abortRef                      = useRef(null);
+  const [messages, setMessages]           = useState([]);
+  const [input, setInput]                 = useState("");
+  const [loading, setLoading]             = useState(false);
+  const [showSources, setShowSources]     = useState(false);
+  const [showFeedback, setShowFeedback]   = useState(false);
+  const [questionCount, setQuestionCount] = useState(0);
+  const bottomRef = useRef(null);
+  const inputRef  = useRef(null);
+  const abortRef  = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (questionCount === 2) {
+      setShowFeedback(true);
+    }
+  }, [questionCount]);
 
   const stop = () => {
     if (abortRef.current) {
@@ -115,6 +169,7 @@ export default function App() {
         sources: data.sources,
         confidence: data.confidence,
       }]);
+      setQuestionCount(prev => prev + 1);
     } catch (err) {
       if (axios.isCancel(err) || err.name === "CanceledError") {
         // user stopped
@@ -137,9 +192,24 @@ export default function App() {
     inputRef.current?.focus();
   };
 
+  const submitFeedback = async (issue) => {
+    try {
+      await axios.post(`${API}/feedback`, {
+        issue,
+        conversation: messages.slice(-6).map(m => ({
+          role: m.role,
+          text: m.text
+        }))
+      });
+    } catch (err) {
+      console.error("Feedback error:", err);
+    }
+  };
+
   const clearChat = async () => {
     try { await axios.delete(`${API}/history`); } catch {}
     setMessages([]);
+    setQuestionCount(0);
   };
 
   const handleKey = (e) => {
@@ -151,6 +221,13 @@ export default function App() {
 
   return (
     <div className="app">
+      {showFeedback && (
+        <FeedbackModal
+          onClose={() => setShowFeedback(false)}
+          onSubmit={submitFeedback}
+        />
+      )}
+
       <header className="header">
         <div className="header-left">
           <div className="logo">La</div>
