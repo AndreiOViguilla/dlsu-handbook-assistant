@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 import "./App.css";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -40,7 +41,11 @@ function Message({ msg, showSources }) {
       {msg.role === "bot" && <div className="avatar">La</div>}
       <div className="bubble-wrapper">
         <div className={`bubble ${msg.role}`}>
-          {msg.text}
+          {msg.role === "bot" ? (
+            <ReactMarkdown>{msg.text}</ReactMarkdown>
+          ) : (
+            msg.text
+          )}
         </div>
         {showSources && msg.sources?.length > 0 && (
           <div className="sources">
@@ -68,13 +73,13 @@ function Message({ msg, showSources }) {
 }
 
 export default function App() {
-  const [messages, setMessages]         = useState([]);
-  const [input, setInput]               = useState("");
-  const [loading, setLoading]           = useState(false);
-  const [showSources, setShowSources]   = useState(false);
-  const bottomRef                       = useRef(null);
-  const inputRef                        = useRef(null);
-  const abortRef                        = useRef(null);
+  const [messages, setMessages]       = useState([]);
+  const [input, setInput]             = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [showSources, setShowSources] = useState(false);
+  const bottomRef                     = useRef(null);
+  const inputRef                      = useRef(null);
+  const abortRef                      = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -112,9 +117,11 @@ export default function App() {
       }]);
     } catch (err) {
       if (axios.isCancel(err) || err.name === "CanceledError") {
-        // user stopped — don't show error
+        // user stopped
       } else {
-        const detail = err.response?.data?.detail || "Error connecting to server.";
+        const detail = typeof err.response?.data?.detail === "string"
+          ? err.response.data.detail
+          : "Error connecting to server.";
         setMessages(prev => [...prev, {
           role: "bot",
           text: detail,
