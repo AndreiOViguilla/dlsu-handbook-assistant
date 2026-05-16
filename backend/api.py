@@ -42,8 +42,8 @@ PDF_PATH = "student-handbook.pdf"
 MODEL    = "llama-3.3-70b-versatile"
 
 client   = Groq(api_key=os.environ["GROQ_API_KEY"])
-embedder = SentenceTransformer("BAAI/bge-base-en-v1.5")
-reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-12-v2")
+embedder = SentenceTransformer("all-MiniLM-L6-v2")          # 90MB — fits free tier
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")  # 80MB — fits free tier
 
 # ── Chunker ───────────────────────────────────────────────────────────────────
 SECTION_RE = re.compile(
