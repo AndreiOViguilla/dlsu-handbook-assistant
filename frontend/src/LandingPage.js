@@ -9,7 +9,6 @@ function TosModal({ onAgree, onDecline }) {
     <div className="modal-overlay">
       <div className="modal-card">
         <div className="modal-header">
-          <span className="modal-icon">📋</span>
           <h2>Terms of Service</h2>
         </div>
 
