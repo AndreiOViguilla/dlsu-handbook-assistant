@@ -1,15 +1,15 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:         #212121;
-  --card:       #2f2f2f;
-  --input-bg:   #2f2f2f;
-  --border:     rgba(255,255,255,0.1);
-  --text:       #ececec;
-  --muted:      #8e8ea0;
-  --accent:     #19c37d;
-  --user-bg:    #2f2f2f;
-  --bot-bg:     transparent;
+  --bg:       #212121;
+  --card:     #2f2f2f;
+  --input-bg: #2f2f2f;
+  --border:   rgba(255,255,255,0.1);
+  --text:     #ececec;
+  --muted:    #8e8ea0;
+  --accent:   #19c37d;
+  --user-bg:  #2f2f2f;
+  --bot-bg:   transparent;
 }
 
 body {
@@ -43,23 +43,16 @@ body {
 .header-right { display: flex; align-items: center; gap: 8px; }
 
 .logo {
-  width: 32px;
-  height: 32px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 12px;
-  color: #212121;
-  flex-shrink: 0;
+  width: 32px; height: 32px;
+  background: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px; color: #212121; flex-shrink: 0;
 }
 
 .title   { color: var(--text); font-weight: 600; font-size: 15px; }
 .subtitle{ color: var(--muted); font-size: 12px; margin-top: 1px; }
 
-.clear-btn {
+.clear-btn, .sources-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--muted);
@@ -69,19 +62,10 @@ body {
   font-size: 13px;
   transition: all 0.15s;
 }
-.clear-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
-
-.sources-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.15s;
+.clear-btn:hover, .sources-btn:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: var(--text);
 }
-.sources-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
 
 /* ── Messages ── */
 .messages {
@@ -101,16 +85,10 @@ body {
 }
 
 .welcome-logo {
-  width: 56px;
-  height: 56px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 20px;
-  color: #212121;
+  width: 56px; height: 56px;
+  background: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 20px; color: #212121;
   margin: 0 auto 20px;
 }
 
@@ -151,19 +129,11 @@ body {
 .message-row.bot  { justify-content: flex-start; }
 
 .avatar {
-  width: 28px;
-  height: 28px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 10px;
-  color: #212121;
-  flex-shrink: 0;
-  margin-right: 12px;
-  margin-top: 2px;
+  width: 28px; height: 28px;
+  background: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 10px; color: #212121;
+  flex-shrink: 0; margin-right: 12px; margin-top: 2px;
 }
 
 .avatar.user { display: none; }
@@ -192,14 +162,14 @@ body {
   white-space: normal;
 }
 
-.bubble.bot p          { margin-bottom: 8px; }
+.bubble.bot p       { margin-bottom: 8px; }
 .bubble.bot ul,
-.bubble.bot ol         { padding-left: 20px; margin-bottom: 8px; }
-.bubble.bot li         { margin-bottom: 4px; }
-.bubble.bot strong     { color: var(--text); font-weight: 600; }
+.bubble.bot ol      { padding-left: 20px; margin-bottom: 8px; }
+.bubble.bot li      { margin-bottom: 4px; }
+.bubble.bot strong  { color: var(--text); font-weight: 600; }
 .bubble.bot h1,
 .bubble.bot h2,
-.bubble.bot h3         { color: var(--text); font-weight: 600; margin: 12px 0 8px; }
+.bubble.bot h3      { color: var(--text); font-weight: 600; margin: 12px 0 8px; }
 
 .bubble.user {
   background: var(--user-bg);
@@ -209,11 +179,24 @@ body {
   white-space: pre-wrap;
 }
 
-/* ── Message action buttons (copy / report) ── */
+/* ── Timestamp ── */
+.msg-time {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  padding-left: 2px;
+  opacity: 0.7;
+}
+
+.message-row.user .msg-time {
+  text-align: right;
+}
+
+/* ── Action buttons ── */
 .message-actions {
   display: flex;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 4px;
   opacity: 0;
   transition: opacity 0.15s;
 }
@@ -283,8 +266,7 @@ body {
 }
 
 .typing span {
-  width: 6px;
-  height: 6px;
+  width: 6px; height: 6px;
   background: var(--muted);
   border-radius: 50%;
   animation: bounce 1.2s infinite;
@@ -298,7 +280,7 @@ body {
   40%           { transform: translateY(-6px); opacity: 1; }
 }
 
-/* ── Input area ── */
+/* ── Input ── */
 .input-area {
   padding: 12px 20px 20px;
   background: var(--bg);
@@ -336,40 +318,26 @@ body {
 .input::placeholder { color: var(--muted); }
 
 .send-btn {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   background: var(--muted);
-  border: none;
-  border-radius: 8px;
-  color: #212121;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  flex-shrink: 0;
+  border: none; border-radius: 8px;
+  color: #212121; font-size: 14px; font-weight: bold;
+  cursor: pointer; flex-shrink: 0;
   transition: background 0.15s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
-
 .send-btn:hover:not(:disabled) { background: #ececec; }
 .send-btn:active:not(:disabled) { transform: scale(0.95); }
 .send-btn:disabled { background: #3a3a3a; cursor: not-allowed; color: var(--muted); }
 
 .stop-btn {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   background: var(--muted);
-  border: none;
-  border-radius: 8px;
-  color: #212121;
-  font-size: 13px;
-  cursor: pointer;
-  flex-shrink: 0;
+  border: none; border-radius: 8px;
+  color: #212121; font-size: 13px;
+  cursor: pointer; flex-shrink: 0;
   transition: background 0.15s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
 .stop-btn:hover { background: #ececec; }
 .stop-btn:active { transform: scale(0.95); }
@@ -403,12 +371,9 @@ body {
 
 /* ── Feedback Modal ── */
 .modal-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.2s ease;
 }
@@ -432,23 +397,14 @@ body {
 .modal-header h3 { color: var(--text); font-size: 16px; font-weight: 600; }
 
 .modal-close {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+  background: transparent; border: none;
+  color: var(--muted); font-size: 16px;
+  cursor: pointer; padding: 4px; border-radius: 6px;
   transition: color 0.15s;
 }
 .modal-close:hover { color: var(--text); }
 
-.modal-desc {
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 16px;
-  line-height: 1.6;
-}
+.modal-desc { color: var(--muted); font-size: 14px; margin-bottom: 16px; line-height: 1.6; }
 
 .modal-input {
   width: 100%;
@@ -459,61 +415,42 @@ body {
   color: var(--text);
   font-size: 14px;
   font-family: inherit;
-  resize: none;
-  outline: none;
+  resize: none; outline: none;
   margin-bottom: 16px;
   transition: border-color 0.15s;
 }
 .modal-input:focus { border-color: rgba(255,255,255,0.25); }
 .modal-input::placeholder { color: var(--muted); }
 
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
 .modal-cancel {
   background: transparent;
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--muted);
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
+  padding: 8px 16px; border-radius: 8px;
+  cursor: pointer; font-size: 13px;
   transition: all 0.15s;
 }
 .modal-cancel:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
 
 .modal-submit {
-  background: var(--muted);
-  border: none;
-  color: #212121;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
+  background: var(--muted); border: none;
+  color: #212121; padding: 8px 16px;
+  border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 600;
   transition: background 0.15s;
 }
 .modal-submit:hover { background: #ececec; }
 
-.modal-sent {
-  text-align: center;
-  padding: 16px 0;
-}
+.modal-sent { text-align: center; padding: 16px 0; }
 
 .modal-sent-icon {
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   background: rgba(25,195,125,0.15);
-  color: #19c37d;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  margin: 0 auto 12px;
+  color: #19c37d; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin: 0 auto 12px;
 }
 
 .modal-sent p { color: var(--text); font-size: 14px; }

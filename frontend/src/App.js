@@ -14,6 +14,25 @@ const SUGGESTIONS = [
   "What are the Latin honors requirements?",
 ];
 
+function formatTime(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function getErrorMessage(err) {
+  const status = err.response?.status;
+  const detail = err.response?.data?.detail;
+
+  if (status === 429) {
+    if (detail?.includes("Daily")) return "Daily limit reached. Please try again tomorrow.";
+    return "Too busy right now. Please wait 60 seconds and try again.";
+  }
+  if (status === 422) return "Your question could not be processed. Please rephrase it.";
+  if (status === 500) return "Something went wrong on our end. Please try again.";
+  if (err.name === "NetworkError" || !err.response) return "Could not connect to server. Check your internet connection.";
+  if (typeof detail === "string") return detail;
+  return "Error connecting to server. Please try again.";
+}
+
 function TypingIndicator() {
   return (
     <div className="message-row bot">
@@ -121,13 +140,13 @@ function CheckFeedbackModal({ onClose, onSubmit }) {
   );
 }
 
-function Message({ msg, showSources, onReport }) {
+function Message({ msg, showSources, onReport, onRetry }) {
   const [copied, setCopied] = useState(false);
 
   const confidenceColor = {
-    HIGH: "#22c55e",
+    HIGH:   "#22c55e",
     MEDIUM: "#f59e0b",
-    LOW: "#ef4444",
+    LOW:    "#ef4444",
   };
 
   const handleCopy = () => {
@@ -148,13 +167,16 @@ function Message({ msg, showSources, onReport }) {
           )}
         </div>
 
+        {/* timestamp */}
+        {msg.timestamp && (
+          <div className="msg-time">{formatTime(msg.timestamp)}</div>
+        )}
+
+        {/* action buttons — copy, retry, report */}
         {msg.role === "bot" && !msg.error && (
           <div className="message-actions">
-            <button
-              className="action-btn"
-              onClick={handleCopy}
-              title={copied ? "Copied!" : "Copy response"}
-            >
+            {/* copy */}
+            <button className="action-btn" onClick={handleCopy} title={copied ? "Copied!" : "Copy"}>
               {copied ? (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="20 6 9 17 4 12"/>
@@ -166,11 +188,17 @@ function Message({ msg, showSources, onReport }) {
                 </svg>
               )}
             </button>
-            <button
-              className="action-btn"
-              onClick={() => onReport(msg.text)}
-              title="Report issue"
-            >
+
+            {/* retry / answer again */}
+            <button className="action-btn" onClick={() => onRetry(msg.question)} title="Answer again">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.35"/>
+              </svg>
+            </button>
+
+            {/* report */}
+            <button className="action-btn" onClick={() => onReport(msg.text)} title="Report issue">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
                 <line x1="4" y1="22" x2="4" y2="15"/>
@@ -196,6 +224,7 @@ function Message({ msg, showSources, onReport }) {
             </div>
           </div>
         )}
+
         {msg.error && (
           <div className="error-msg">{msg.text}</div>
         )}
@@ -210,7 +239,7 @@ export default function App() {
   const [loading, setLoading]               = useState(false);
   const [showSources, setShowSources]       = useState(false);
   const [showCheckFeedback, setShowCheckFeedback] = useState(false);
-  const [reportModal, setReportModal]       = useState(null); // holds msg text
+  const [reportModal, setReportModal]       = useState(null);
   const [questionCount, setQuestionCount]   = useState(0);
   const bottomRef = useRef(null);
   const inputRef  = useRef(null);
@@ -221,9 +250,7 @@ export default function App() {
   }, [messages, loading]);
 
   useEffect(() => {
-    if (questionCount === 2) {
-      setShowCheckFeedback(true);
-    }
+    if (questionCount === 2) setShowCheckFeedback(true);
   }, [questionCount]);
 
   const stop = () => {
@@ -235,17 +262,18 @@ export default function App() {
     inputRef.current?.focus();
   };
 
-const send = async (question) => {
+  const send = async (question) => {
     const q = (question || input).trim();
     if (!q || loading) return;
     setInput("");
-    // reset textarea height back to normal
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto";
-    }
-    setMessages(prev => [...prev, { role: "user", text: q }]);
-    setLoading(true);
+    if (inputRef.current) inputRef.current.style.height = "auto";
 
+    setMessages(prev => [...prev, {
+      role: "user",
+      text: q,
+      timestamp: new Date()
+    }]);
+    setLoading(true);
     abortRef.current = new AbortController();
 
     try {
@@ -255,25 +283,25 @@ const send = async (question) => {
         { signal: abortRef.current.signal }
       );
       setMessages(prev => [...prev, {
-        role: "bot",
-        text: data.answer,
-        sources: data.sources,
+        role:       "bot",
+        text:       data.answer,
+        sources:    data.sources,
         confidence: data.confidence,
+        question:   q,
+        timestamp:  new Date(),
       }]);
       setQuestionCount(prev => prev + 1);
     } catch (err) {
       if (axios.isCancel(err) || err.name === "CanceledError") {
         // user stopped
       } else {
-        const detail = typeof err.response?.data?.detail === "string"
-          ? err.response.data.detail
-          : "Error connecting to server.";
         setMessages(prev => [...prev, {
-          role: "bot",
-          text: detail,
-          sources: [],
-          confidence: "LOW",
-          error: true,
+          role:      "bot",
+          text:      getErrorMessage(err),
+          sources:   [],
+          confidence:"LOW",
+          error:     true,
+          timestamp: new Date(),
         }]);
       }
     }
@@ -288,7 +316,6 @@ const send = async (question) => {
       const conversation = reportedMessage
         ? [{ role: "bot", text: reportedMessage }]
         : messages.slice(-6).map(m => ({ role: m.role, text: m.text }));
-
       await axios.post(`${API}/feedback`, { issue, conversation });
     } catch (err) {
       console.error("Feedback error:", err);
@@ -334,15 +361,10 @@ const send = async (question) => {
           </div>
         </div>
         <div className="header-right">
-          <button
-            className="sources-btn"
-            onClick={() => setShowSources(s => !s)}
-          >
+          <button className="sources-btn" onClick={() => setShowSources(s => !s)}>
             {showSources ? "Hide sources" : "View sources"}
           </button>
-          <button className="clear-btn" onClick={clearChat}>
-            Clear chat
-          </button>
+          <button className="clear-btn" onClick={clearChat}>Clear chat</button>
         </div>
       </header>
 
@@ -354,9 +376,7 @@ const send = async (question) => {
             <p>Ask me anything about the DLSU Student Handbook 2021-2025</p>
             <div className="suggestions">
               {SUGGESTIONS.map(q => (
-                <button key={q} className="suggestion" onClick={() => send(q)}>
-                  {q}
-                </button>
+                <button key={q} className="suggestion" onClick={() => send(q)}>{q}</button>
               ))}
             </div>
           </div>
@@ -368,6 +388,7 @@ const send = async (question) => {
             msg={msg}
             showSources={showSources}
             onReport={(msgText) => setReportModal(msgText)}
+            onRetry={(q) => send(q)}
           />
         ))}
 
@@ -392,17 +413,9 @@ const send = async (question) => {
             disabled={loading}
           />
           {loading ? (
-            <button className="stop-btn" onClick={stop} title="Stop generating">
-              &#9632;
-            </button>
+            <button className="stop-btn" onClick={stop} title="Stop generating">&#9632;</button>
           ) : (
-            <button
-              className="send-btn"
-              onClick={() => send()}
-              disabled={!input.trim()}
-            >
-              ➤
-            </button>
+            <button className="send-btn" onClick={() => send()} disabled={!input.trim()}>➤</button>
           )}
         </div>
         <div className="disclaimer">
