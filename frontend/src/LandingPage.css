@@ -1,0 +1,118 @@
+.landing {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #212121;
+  padding: 24px;
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  animation: landingFadeIn 0.5s ease;
+}
+
+.landing-logo {
+  width: 64px; height: 64px;
+  background: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 22px; color: #212121;
+  margin-bottom: 24px;
+}
+
+.landing-title {
+  color: #ececec;
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.landing-subtitle {
+  color: #8e8ea0;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 36px;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.landing-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #2f2f2f;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px 32px;
+  margin-bottom: 32px;
+  width: 100%;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-number {
+  color: #ececec;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.stat-label {
+  color: #8e8ea0;
+  font-size: 12px;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,0.1);
+}
+
+.landing-btn {
+  background: #ececec;
+  border: none;
+  color: #212121;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s, transform 0.1s;
+  margin-bottom: 20px;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.landing-btn:hover  { opacity: 0.9; }
+.landing-btn:active { transform: scale(0.98); }
+
+.landing-disclaimer {
+  color: #8e8ea0;
+  font-size: 12px;
+  line-height: 1.6;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+@keyframes landingFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .landing-stats  { padding: 16px 20px; }
+  .stat-number    { font-size: 22px; }
+  .landing-title  { font-size: 22px; }
+}
