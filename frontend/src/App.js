@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
+import LandingPage from "./LandingPage";
 import "./App.css";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -21,14 +22,13 @@ function formatTime(date) {
 function getErrorMessage(err) {
   const status = err.response?.status;
   const detail = err.response?.data?.detail;
-
   if (status === 429) {
     if (detail?.includes("Daily")) return "Daily limit reached. Please try again tomorrow.";
     return "Too busy right now. Please wait 60 seconds and try again.";
   }
   if (status === 422) return "Your question could not be processed. Please rephrase it.";
   if (status === 500) return "Something went wrong on our end. Please try again.";
-  if (err.name === "NetworkError" || !err.response) return "Could not connect to server. Check your internet connection.";
+  if (!err.response) return "Could not connect to server. Check your internet connection.";
   if (typeof detail === "string") return detail;
   return "Error connecting to server. Please try again.";
 }
@@ -39,17 +39,15 @@ function TypingIndicator() {
       <div className="avatar">La</div>
       <div className="bubble-wrapper">
         <div className="bubble bot">
-          <div className="typing">
-            <span /><span /><span />
-          </div>
+          <div className="typing"><span /><span /><span /></div>
         </div>
       </div>
     </div>
   );
 }
 
-function FeedbackModal({ onClose, onSubmit, prefillMessage }) {
-  const [issue, setIssue] = useState(prefillMessage || "");
+function FeedbackModal({ onClose, onSubmit }) {
+  const [issue, setIssue] = useState("");
   const [sent, setSent]   = useState(false);
 
   const handleSubmit = async () => {
@@ -73,9 +71,7 @@ function FeedbackModal({ onClose, onSubmit, prefillMessage }) {
               <h3>Report an issue</h3>
               <button className="modal-close" onClick={onClose}>✕</button>
             </div>
-            <p className="modal-desc">
-              Describe what went wrong or what answer you were expecting.
-            </p>
+            <p className="modal-desc">Describe what went wrong or what answer you were expecting.</p>
             <textarea
               className="modal-input"
               placeholder="Describe the issue..."
@@ -144,9 +140,7 @@ function Message({ msg, showSources, onReport, onRetry }) {
   const [copied, setCopied] = useState(false);
 
   const confidenceColor = {
-    HIGH:   "#22c55e",
-    MEDIUM: "#f59e0b",
-    LOW:    "#ef4444",
+    HIGH: "#22c55e", MEDIUM: "#f59e0b", LOW: "#ef4444",
   };
 
   const handleCopy = () => {
@@ -162,20 +156,15 @@ function Message({ msg, showSources, onReport, onRetry }) {
         <div className={`bubble ${msg.role}`}>
           {msg.role === "bot" ? (
             <ReactMarkdown>{msg.text}</ReactMarkdown>
-          ) : (
-            msg.text
-          )}
+          ) : msg.text}
         </div>
 
-        {/* timestamp */}
         {msg.timestamp && (
           <div className="msg-time">{formatTime(msg.timestamp)}</div>
         )}
 
-        {/* action buttons — copy, retry, report */}
         {msg.role === "bot" && !msg.error && (
           <div className="message-actions">
-            {/* copy */}
             <button className="action-btn" onClick={handleCopy} title={copied ? "Copied!" : "Copy"}>
               {copied ? (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -188,16 +177,12 @@ function Message({ msg, showSources, onReport, onRetry }) {
                 </svg>
               )}
             </button>
-
-            {/* retry / answer again */}
             <button className="action-btn" onClick={() => onRetry(msg.question)} title="Answer again">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="1 4 1 10 7 10"/>
                 <path d="M3.51 15a9 9 0 1 0 .49-3.35"/>
               </svg>
             </button>
-
-            {/* report */}
             <button className="action-btn" onClick={() => onReport(msg.text)} title="Report issue">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
@@ -209,11 +194,8 @@ function Message({ msg, showSources, onReport, onRetry }) {
 
         {showSources && msg.sources?.length > 0 && (
           <div className="sources">
-            <span style={{ color: confidenceColor[msg.confidence] }}>
-              ● {msg.confidence}
-            </span>
-            {" · "}
-            {msg.sources.length} sources
+            <span style={{ color: confidenceColor[msg.confidence] }}>● {msg.confidence}</span>
+            {" · "}{msg.sources.length} sources
             <div className="source-list">
               {msg.sources.map((s, i) => (
                 <div key={i} className="source-item">
@@ -225,15 +207,14 @@ function Message({ msg, showSources, onReport, onRetry }) {
           </div>
         )}
 
-        {msg.error && (
-          <div className="error-msg">{msg.text}</div>
-        )}
+        {msg.error && <div className="error-msg">{msg.text}</div>}
       </div>
     </div>
   );
 }
 
 export default function App() {
+  const [page, setPage]                     = useState("landing");
   const [messages, setMessages]             = useState([]);
   const [input, setInput]                   = useState("");
   const [loading, setLoading]               = useState(false);
@@ -253,11 +234,13 @@ export default function App() {
     if (questionCount === 2) setShowCheckFeedback(true);
   }, [questionCount]);
 
+  const handleStart = () => {
+    axios.post(`${API}/visit`).catch(() => {});
+    setPage("chat");
+  };
+
   const stop = () => {
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
+    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
     setLoading(false);
     inputRef.current?.focus();
   };
@@ -268,42 +251,26 @@ export default function App() {
     setInput("");
     if (inputRef.current) inputRef.current.style.height = "auto";
 
-    setMessages(prev => [...prev, {
-      role: "user",
-      text: q,
-      timestamp: new Date()
-    }]);
+    setMessages(prev => [...prev, { role: "user", text: q, timestamp: new Date() }]);
     setLoading(true);
     abortRef.current = new AbortController();
 
     try {
       const { data } = await axios.post(
-        `${API}/chat`,
-        { question: q },
+        `${API}/chat`, { question: q },
         { signal: abortRef.current.signal }
       );
       setMessages(prev => [...prev, {
-        role:       "bot",
-        text:       data.answer,
-        sources:    data.sources,
-        confidence: data.confidence,
-        question:   q,
-        timestamp:  new Date(),
+        role: "bot", text: data.answer, sources: data.sources,
+        confidence: data.confidence, question: q, timestamp: new Date(),
       }]);
       setQuestionCount(prev => prev + 1);
     } catch (err) {
-      if (axios.isCancel(err) || err.name === "CanceledError") {
-        // user stopped
-      } else {
-        setMessages(prev => [...prev, {
-          role:      "bot",
-          text:      getErrorMessage(err),
-          sources:   [],
-          confidence:"LOW",
-          error:     true,
-          timestamp: new Date(),
-        }]);
-      }
+      if (axios.isCancel(err) || err.name === "CanceledError") return;
+      setMessages(prev => [...prev, {
+        role: "bot", text: getErrorMessage(err),
+        sources: [], confidence: "LOW", error: true, timestamp: new Date(),
+      }]);
     }
 
     setLoading(false);
@@ -317,9 +284,7 @@ export default function App() {
         ? [{ role: "bot", text: reportedMessage }]
         : messages.slice(-6).map(m => ({ role: m.role, text: m.text }));
       await axios.post(`${API}/feedback`, { issue, conversation });
-    } catch (err) {
-      console.error("Feedback error:", err);
-    }
+    } catch {}
   };
 
   const clearChat = async () => {
@@ -329,11 +294,10 @@ export default function App() {
   };
 
   const handleKey = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
+
+  if (page === "landing") return <LandingPage onStart={handleStart} />;
 
   return (
     <div className="app">
@@ -343,12 +307,10 @@ export default function App() {
           onSubmit={(issue) => submitFeedback(issue, null)}
         />
       )}
-
       {reportModal !== null && (
         <FeedbackModal
           onClose={() => setReportModal(null)}
           onSubmit={(issue) => submitFeedback(issue, reportModal)}
-          prefillMessage=""
         />
       )}
 
@@ -384,10 +346,8 @@ export default function App() {
 
         {messages.map((msg, i) => (
           <Message
-            key={i}
-            msg={msg}
-            showSources={showSources}
-            onReport={(msgText) => setReportModal(msgText)}
+            key={i} msg={msg} showSources={showSources}
+            onReport={(t) => setReportModal(t)}
             onRetry={(q) => send(q)}
           />
         ))}
@@ -399,9 +359,7 @@ export default function App() {
       <footer className="input-area">
         <div className="input-row">
           <textarea
-            ref={inputRef}
-            className="input"
-            value={input}
+            ref={inputRef} className="input" value={input}
             onChange={e => {
               setInput(e.target.value);
               e.target.style.height = "auto";
@@ -409,11 +367,10 @@ export default function App() {
             }}
             onKeyDown={handleKey}
             placeholder="Ask about DLSU policies..."
-            rows={1}
-            disabled={loading}
+            rows={1} disabled={loading}
           />
           {loading ? (
-            <button className="stop-btn" onClick={stop} title="Stop generating">&#9632;</button>
+            <button className="stop-btn" onClick={stop}>&#9632;</button>
           ) : (
             <button className="send-btn" onClick={() => send()} disabled={!input.trim()}>➤</button>
           )}
