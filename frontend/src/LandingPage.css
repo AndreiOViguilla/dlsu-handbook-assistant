@@ -99,6 +99,31 @@
 .landing-btn:hover  { opacity: 0.9; }
 .landing-btn:active { transform: scale(0.98); }
 
+.landing-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.landing-warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.landing-warning-text {
+  color: #a89060;
+  font-size: 13px;
+  line-height: 1.6;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
 .landing-disclaimer {
   color: #8e8ea0;
   font-size: 12px;
@@ -106,8 +131,159 @@
   font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-card {
+  background: #2f2f2f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.25s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  color: #ececec;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  margin: 0;
+}
+
+.modal-icon {
+  font-size: 20px;
+}
+
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+  margin-bottom: 24px;
+  padding-right: 4px;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.tos-section {
+  margin-bottom: 20px;
+}
+
+.tos-section h3 {
+  color: #ececec;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.tos-section p,
+.tos-section ul {
+  color: #8e8ea0;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.tos-section ul {
+  padding-left: 18px;
+}
+
+.tos-section ul li {
+  margin-bottom: 4px;
+}
+
+.tos-date {
+  color: #5a5a72;
+  font-size: 12px;
+  margin-bottom: 20px;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-agree-btn {
+  background: #ececec;
+  border: none;
+  color: #212121;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s, transform 0.1s;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.modal-agree-btn:hover  { opacity: 0.9; }
+.modal-agree-btn:active { transform: scale(0.98); }
+
+.modal-decline-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #8e8ea0;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+.modal-decline-btn:hover { background: rgba(255, 255, 255, 0.05); }
+
 @keyframes landingFadeIn {
   from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -115,4 +291,5 @@
   .landing-stats  { padding: 16px 20px; }
   .stat-number    { font-size: 22px; }
   .landing-title  { font-size: 22px; }
+  .modal-card     { padding: 24px; }
 }
