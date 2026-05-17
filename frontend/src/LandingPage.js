@@ -43,8 +43,9 @@ export default function LandingPage({ onStart }) {
         </button>
 
         <p className="landing-disclaimer">
-          Responses are based on the DLSU Student Handbook 2021-2025.
-          For official guidance, consult the SDFO or relevant office.
+          This assistant is powered by AI and may occasionally give incorrect or
+          incomplete answers. Always verify important information with the official
+          DLSU Student Handbook or consult the SDFO and relevant offices directly.
         </p>
       </div>
     </div>
