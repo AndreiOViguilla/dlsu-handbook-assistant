@@ -235,10 +235,14 @@ export default function App() {
     inputRef.current?.focus();
   };
 
-  const send = async (question) => {
+const send = async (question) => {
     const q = (question || input).trim();
     if (!q || loading) return;
     setInput("");
+    // reset textarea height back to normal
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
     setMessages(prev => [...prev, { role: "user", text: q }]);
     setLoading(true);
 
