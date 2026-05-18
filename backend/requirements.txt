@@ -1,12 +1,13 @@
 fastapi
-uvicorn
+uvicorn[standard]
 groq
+openai
+google-genai
 sentence-transformers
 rank-bm25
 scikit-learn
 numpy
 pypdf
-torch
 slowapi
 python-dotenv
-pydantic
+resend
