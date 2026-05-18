@@ -344,9 +344,10 @@ body {
 
 .disclaimer {
   text-align: center;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 11px;
+  color: #5a5a72;
   margin-top: 10px;
+  line-height: 1.6;
 }
 
 /* ── Animations ── */

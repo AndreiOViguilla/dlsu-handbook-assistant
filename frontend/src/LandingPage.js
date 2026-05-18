@@ -146,8 +146,9 @@ export default function LandingPage({ onStart }) {
         </button>
 
         <p className="landing-disclaimer">
-          Responses are based on the DLSU Student Handbook 2021-2025.
-          For official guidance, consult the SDFO or relevant office.
+          AI-generated responses based on DLSU Student Handbook 2021-2025.
+This is an unofficial student project. Not affiliated with DLSU.
+Always verify important information with the SDFO or relevant office.
         </p>
       </div>
     </div>

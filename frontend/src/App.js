@@ -376,7 +376,8 @@ export default function App() {
           )}
         </div>
         <div className="disclaimer">
-          Responses based on DLSU Student Handbook 2021-2025. For official guidance, consult the SDFO or relevant office.
+          AI-generated responses · Unofficial student project · Not affiliated with DLSU ·
+          Always verify with the SDFO or relevant office.
         </div>
       </footer>
     </div>
