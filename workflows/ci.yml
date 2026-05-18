@@ -24,17 +24,13 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
+          pip install fastapi uvicorn pydantic slowapi python-dotenv \
+                      numpy pytest pytest-asyncio httpx starlette
 
       - name: Run backend tests
         working-directory: backend
-        env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-        run: pytest tests/ -v --tb=short
+        run: |
+          PYTHONPATH=. pytest tests/ -v --tb=short
 
   # ── Frontend Tests ─────────────────────────────────────────────────────────
   frontend-test:
@@ -49,12 +45,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm install
 
       - name: Run frontend tests
         working-directory: frontend
@@ -66,7 +60,7 @@ jobs:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
         run: npm run build
 
-  # ── Deploy (only on main) ──────────────────────────────────────────────────
+  # ── Deploy ─────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
