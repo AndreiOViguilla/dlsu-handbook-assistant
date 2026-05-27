@@ -154,9 +154,9 @@ function Message({ msg, showSources, onReport, onRetry }) {
       {msg.role === "bot" && <div className="avatar">La</div>}
       <div className="bubble-wrapper">
         <div className={`bubble ${msg.role}`}>
-          {msg.role === "bot" ? (
+          {!msg.error && (msg.role === "bot" ? (
             <ReactMarkdown>{msg.text}</ReactMarkdown>
-          ) : msg.text}
+          ) : msg.text)}
         </div>
 
         {msg.timestamp && (
