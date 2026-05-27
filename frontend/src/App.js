@@ -206,8 +206,6 @@ function Message({ msg, showSources, onReport, onRetry }) {
             </div>
           </div>
         )}
-
-        {msg.error && <div className="error-msg">{msg.text}</div>}
       </div>
     </div>
   );
