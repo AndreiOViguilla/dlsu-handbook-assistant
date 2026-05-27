@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/chat", "destination": "https://andreioviguilla-dlsu-handbook-api.hf.space/chat" },
+    { "source": "/visit", "destination": "https://andreioviguilla-dlsu-handbook-api.hf.space/visit" },
+    { "source": "/stats", "destination": "https://andreioviguilla-dlsu-handbook-api.hf.space/stats" },
+    { "source": "/feedback", "destination": "https://andreioviguilla-dlsu-handbook-api.hf.space/feedback" },
+    { "source": "/history", "destination": "https://andreioviguilla-dlsu-handbook-api.hf.space/history" }
+  ]
+}
