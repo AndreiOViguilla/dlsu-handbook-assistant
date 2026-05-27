@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import "./LandingPage.css";
 
-const API = "/api";
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 function TosModal({ onAgree, onDecline }) {
   return (
