@@ -220,11 +220,9 @@ export default function App() {
   const [showCheckFeedback, setShowCheckFeedback] = useState(false);
   const [reportModal, setReportModal]       = useState(null);
   const [questionCount, setQuestionCount]   = useState(0);
-  const bottomRef  = useRef(null);
-  const inputRef   = useRef(null);
-  const abortRef   = useRef(null);
-  // ── Each user gets a unique session ID for the lifetime of the tab ──────────
-  const sessionId  = useRef(crypto.randomUUID());
+  const bottomRef = useRef(null);
+  const inputRef  = useRef(null);
+  const abortRef  = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -257,9 +255,7 @@ export default function App() {
 
     try {
       const { data } = await axios.post(
-        `${API}/chat`,
-        // ── Pass session_id so the backend tracks per-user history ────────────
-        { question: q, session_id: sessionId.current },
+        `${API}/chat`, { question: q },
         { signal: abortRef.current.signal }
       );
       setMessages(prev => [...prev, {
@@ -290,10 +286,7 @@ export default function App() {
   };
 
   const clearChat = async () => {
-    try {
-      // ── Pass session_id so only this user's history is cleared ───────────
-      await axios.delete(`${API}/history?session_id=${sessionId.current}`);
-    } catch {}
+    try { await axios.delete(`${API}/history`); } catch {}
     setMessages([]);
     setQuestionCount(0);
   };
