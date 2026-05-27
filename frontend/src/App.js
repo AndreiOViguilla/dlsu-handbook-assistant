@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import LandingPage from "./LandingPage";
 import "./App.css";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API = "/api";
 
 const SUGGESTIONS = [
   "What are the attendance rules?",
